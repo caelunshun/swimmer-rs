@@ -1,0 +1,11 @@
+[package]
+name = "swimmer"
+version = "0.1.0" # Update html_doc_root
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+crossbeam = "0.7.2"
+
+[dev-dependencies]
+static_assertions = "0.3.4"
