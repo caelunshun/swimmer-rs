@@ -16,4 +16,4 @@ drop(value);
 assert_eq!(pool.size(), 10);
 ```
 
-See the [documentation](https://docs.rs/swimmer) for more.
+See the [documentation](https://docs.rs/swimmer/) for more.
