@@ -1,5 +1,5 @@
-use crate::{Pool, Recyclable};
-use crossbeam::queue::SegQueue;
+use crate::{Pool, Recyclable, init};
+use thread_local::CachedThreadLocal;
 
 /// Creates a new `PoolBuilder`, used
 /// to initialize a `Pool`.
@@ -46,13 +46,13 @@ where
 
     /// Builds a pool using the configured settings.
     pub fn build(self) -> Pool<T> {
-        let values = SegQueue::new();
+        let values = CachedThreadLocal::new();
 
         for _ in 0..self.starting_size {
             if let Some(supplier) = self.supplier.as_ref() {
-                values.push(supplier())
+                values.get_or(|| init()).borrow_mut().push(supplier())
             } else {
-                values.push(T::new())
+                values.get_or(|| init()).borrow_mut().push(T::new())
             }
         }
 

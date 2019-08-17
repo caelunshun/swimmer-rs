@@ -1,5 +1,5 @@
 #![forbid(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/swimmer/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/swimmer/0.2.0")]
 
 //! A thread-safe object pool for Rust.
 //!
@@ -49,8 +49,10 @@
 //! `Pool` is thread-safe, and it can be shared across threads
 //! or used in a lazily-initialized static variable (see the examples).
 //!
-//! Currently, this is implemented using
-//! [`crossbeam::SegQueue`](https://docs.rs/crossbeam/0.7.2/crossbeam/queue/struct.SegQueue.html).
+//! This is currently implemented by making the pool contain
+//! a thread-local buffer for each thread, which has been proving
+//! by benchmarks to be more than twice as performant as using
+//! a locked `Vec` or `crossbeam::SegQueue`.
 //!
 //! # Supplier
 //! In some cases, you may want to specify your own function
@@ -183,12 +185,13 @@ mod recyclable;
 pub use builder::{builder, PoolBuilder, Supplier};
 pub use recyclable::Recyclable;
 
-use crossbeam::queue::SegQueue;
 use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
 use std::ops::{Deref, DerefMut};
+use thread_local::CachedThreadLocal;
+use std::cell::RefCell;
 
 /// A thread-safe object pool, used
 /// to reuse objects without reallocating.
@@ -200,7 +203,7 @@ where
     T: Recyclable,
 {
     settings: PoolBuilder<T>,
-    values: SegQueue<T>,
+    values: CachedThreadLocal<RefCell<Vec<T>>>,
 }
 
 impl<T> Pool<T>
@@ -281,7 +284,7 @@ where
     /// assert_eq!(pool.size(), 16);
     /// ```
     pub fn size(&self) -> usize {
-        self.values.len()
+        self.values.get_or(|| init()).borrow().len()
     }
 
     /// Attaches `value` to this pool, wrapping
@@ -344,12 +347,16 @@ where
 
     fn return_value(&self, mut value: T) {
         value.recycle();
-        self.values.push(value)
+        self.values.get_or(|| init()).borrow_mut().push(value);
     }
 
     fn get_raw_value(&self) -> T {
-        self.values.pop().unwrap_or_else(|_| self.create())
+        self.values.get_or(|| init()).borrow_mut().pop().unwrap_or_else(|| self.create())
     }
+}
+
+fn init<T>() -> Box<RefCell<Vec<T>>> {
+    Box::new(RefCell::new(vec![]))
 }
 
 /// A smart pointer which returns the contained
