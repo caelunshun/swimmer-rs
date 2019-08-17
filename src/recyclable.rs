@@ -1,17 +1,41 @@
 use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque};
 use std::hash::Hash;
 
+macro_rules! num_recyclable_impl {
+    ($num:ident) => {
+        impl Recyclable for $num {
+            fn new() -> Self {
+                0
+            }
+
+            fn recycle(&mut self) {
+                *self = 0
+            }
+        }
+    };
+}
+
+/// Indicates that an object can be used
+/// inside a `Pool`.
+///
+/// Types implementing this trait must be `Send`,
+/// since the pool itself can be used across threads.
 pub trait Recyclable: Send {
+    /// Creates a new value of this type.
     fn new() -> Self
     where
         Self: Sized;
+
+    /// Resets this object, allowing it to
+    /// be reused in the future without retaining
+    /// its old state.
     fn recycle(&mut self);
 }
 
 // Recyclable implementations
 impl Recyclable for String {
     fn new() -> Self {
-        Self::new()
+        String::new()
     }
 
     fn recycle(&mut self) {
@@ -24,7 +48,7 @@ where
     T: Send,
 {
     fn new() -> Self {
-        Self::new()
+        Vec::new()
     }
 
     fn recycle(&mut self) {
@@ -37,7 +61,7 @@ where
     T: Send,
 {
     fn new() -> Self {
-        Self::new()
+        VecDeque::new()
     }
 
     fn recycle(&mut self) {
@@ -50,7 +74,7 @@ where
     T: Send,
 {
     fn new() -> Self {
-        Self::new()
+        LinkedList::new()
     }
 
     fn recycle(&mut self) {
@@ -64,7 +88,7 @@ where
     V: Send,
 {
     fn new() -> Self {
-        Self::new()
+        HashMap::new()
     }
 
     fn recycle(&mut self) {
@@ -77,7 +101,7 @@ where
     T: Eq + Hash + Send,
 {
     fn new() -> Self {
-        Self::new()
+        HashSet::new()
     }
 
     fn recycle(&mut self) {
@@ -91,7 +115,7 @@ where
     V: Send,
 {
     fn new() -> Self {
-        Self::new()
+        BTreeMap::new()
     }
 
     fn recycle(&mut self) {
@@ -104,7 +128,7 @@ where
     T: Ord + Send,
 {
     fn new() -> Self {
-        Self::new()
+        BTreeSet::new()
     }
 
     fn recycle(&mut self) {
@@ -117,13 +141,22 @@ where
     T: Ord + Send,
 {
     fn new() -> Self {
-        Self::new()
+        BinaryHeap::new()
     }
 
     fn recycle(&mut self) {
         self.clear()
     }
 }
+
+num_recyclable_impl!(u8);
+num_recyclable_impl!(u16);
+num_recyclable_impl!(u32);
+num_recyclable_impl!(u64);
+num_recyclable_impl!(i8);
+num_recyclable_impl!(i16);
+num_recyclable_impl!(i32);
+num_recyclable_impl!(i64);
 
 #[cfg(feature = "hashbrown-impls")]
 mod hashbrown {
@@ -137,7 +170,7 @@ mod hashbrown {
         V: Send,
     {
         fn new() -> Self {
-            Self::new()
+            HashMap::new()
         }
 
         fn recycle(&mut self) {
@@ -150,7 +183,27 @@ mod hashbrown {
         T: Eq + Hash + Send,
     {
         fn new() -> Self {
-            Self::new()
+            HashSet::new()
+        }
+
+        fn recycle(&mut self) {
+            self.clear()
+        }
+    }
+}
+
+#[cfg(feature = "smallvec-impls")]
+mod smallvec {
+    use crate::Recyclable;
+    use smallvec::{Array, SmallVec};
+
+    impl<T, A> Recyclable for SmallVec<A>
+    where
+        A: Array<Item = T>,
+        T: Send,
+    {
+        fn new() -> Self {
+            SmallVec::new()
         }
 
         fn recycle(&mut self) {
