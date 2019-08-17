@@ -52,7 +52,8 @@ where
         }
     }
 
-    fn return_value(&self, value: T) {
+    fn return_value(&self, mut value: T) {
+        value.recycle();
         self.values.push(value)
     }
 }
@@ -183,5 +184,20 @@ mod tests {
         drop(value);
 
         assert_eq!(pool.size(), 100);
+    }
+
+    #[test]
+    fn test_supplier() {
+        let pool: Pool<String> = builder()
+            .with_starting_size(4)
+            .with_supplier(|| String::from("test"))
+            .build();
+
+        let mut value = pool.get();
+        assert_eq!(*value, "test");
+
+        value.push_str("bla");
+        assert_eq!(*value, "testbla");
+        drop(value);
     }
 }

@@ -39,7 +39,11 @@ where
         let values = SegQueue::new();
 
         for _ in 0..self.starting_size {
-            values.push(T::new());
+            if let Some(supplier) = self.supplier.as_ref() {
+                values.push(supplier())
+            } else {
+                values.push(T::new())
+            }
         }
 
         Pool {

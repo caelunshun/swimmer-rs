@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 pub trait Recyclable: Send {
     fn new() -> Self
     where
@@ -17,6 +19,19 @@ impl Recyclable for String {
 }
 
 impl<T> Recyclable for Vec<T>
+where
+    T: Send,
+{
+    fn new() -> Self {
+        Self::new()
+    }
+
+    fn recycle(&mut self) {
+        self.clear()
+    }
+}
+
+impl<T> Recyclable for VecDeque<T>
 where
     T: Send,
 {
