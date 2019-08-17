@@ -13,7 +13,7 @@ assert_eq!(*value, "");
 
 drop(value);
 // Value is returned to pool
-assert_eq!(pool.size(), 9);
+assert_eq!(pool.size(), 10);
 ```
 
 See the [documentation](https://docs.rs/swimmer) for more.
