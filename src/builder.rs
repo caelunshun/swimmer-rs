@@ -61,6 +61,32 @@ where
             settings: self,
         }
     }
+
+    /// Builds a pool using the configured settings, and fill it with the given items.
+    pub fn build_with(self, items: Vec<T>) -> Pool<T> {
+        let values = CachedThreadLocal::new();
+
+        let size = items.len();
+        for itm in items {
+            values.get_or(|| init()).borrow_mut().push(itm);
+        }
+
+        if size < self.starting_size {
+            let remainder = self.starting_size - size;
+            for _ in 0..remainder{
+                if let Some(supplier) = self.supplier.as_ref() {
+                    values.get_or(|| init()).borrow_mut().push(supplier())
+                } else {
+                    values.get_or(|| init()).borrow_mut().push(T::new())
+                }
+            }
+        }
+
+        Pool {
+            values,
+            settings: self,
+        }
+    }
 }
 
 impl<T> Default for PoolBuilder<T>
@@ -69,7 +95,7 @@ where
 {
     fn default() -> Self {
         Self {
-            starting_size: 8,
+            starting_size: 0,
             supplier: None,
         }
     }
