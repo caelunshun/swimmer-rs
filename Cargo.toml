@@ -1,6 +1,6 @@
 [package]
 name = "swimmer"
-version = "0.2.0" # Update html_root_url
+version = "0.3.0" # Update html_root_url
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 description = "Thread-safe object pool type"
