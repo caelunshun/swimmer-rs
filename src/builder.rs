@@ -1,4 +1,4 @@
-use crate::{Pool, Recyclable, init};
+use crate::{init, Pool, Recyclable};
 use thread_local::CachedThreadLocal;
 
 /// Creates a new `PoolBuilder`, used
@@ -73,7 +73,7 @@ where
 
         if size < self.starting_size {
             let remainder = self.starting_size - size;
-            for _ in 0..remainder{
+            for _ in 0..remainder {
                 if let Some(supplier) = self.supplier.as_ref() {
                     values.get_or(|| init()).borrow_mut().push(supplier())
                 } else {

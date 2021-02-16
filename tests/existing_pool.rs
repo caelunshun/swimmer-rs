@@ -1,8 +1,11 @@
 #[test]
 /// Test if we can build a pool from an existing vec
 fn existing_pool_full() {
-
-    let values = vec!["value_1".to_string(), "value_2".to_string(), "value_3".to_string()];
+    let values = vec![
+        "value_1".to_string(),
+        "value_2".to_string(),
+        "value_3".to_string(),
+    ];
 
     let pool = swimmer::builder().build_with(values);
 
@@ -15,8 +18,11 @@ fn existing_pool_full() {
 #[test]
 /// Test if we can build a pool from an existing vec
 fn existing_pool_partial() {
-
-    let values = vec!["value_1".to_string(), "value_2".to_string(), "value_3".to_string()];
+    let values = vec![
+        "value_1".to_string(),
+        "value_2".to_string(),
+        "value_3".to_string(),
+    ];
 
     let pool = swimmer::builder().with_starting_size(5).build_with(values);
 

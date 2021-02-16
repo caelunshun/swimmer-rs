@@ -185,13 +185,13 @@ mod recyclable;
 pub use builder::{builder, PoolBuilder, Supplier};
 pub use recyclable::Recyclable;
 
+use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
 use std::ops::{Deref, DerefMut};
 use thread_local::CachedThreadLocal;
-use std::cell::RefCell;
 
 /// A thread-safe object pool, used
 /// to reuse objects without reallocating.
@@ -351,7 +351,11 @@ where
     }
 
     fn get_raw_value(&self) -> T {
-        self.values.get_or(|| init()).borrow_mut().pop().unwrap_or_else(|| self.create())
+        self.values
+            .get_or(|| init())
+            .borrow_mut()
+            .pop()
+            .unwrap_or_else(|| self.create())
     }
 }
 
