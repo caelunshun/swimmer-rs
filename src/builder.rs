@@ -1,5 +1,5 @@
 use crate::{init, Pool, Recyclable};
-use thread_local::CachedThreadLocal;
+use thread_local::ThreadLocal;
 
 /// Creates a new `PoolBuilder`, used
 /// to initialize a `Pool`.
@@ -46,7 +46,7 @@ where
 
     /// Builds a pool using the configured settings.
     pub fn build(self) -> Pool<T> {
-        let values = CachedThreadLocal::new();
+        let values = ThreadLocal::new();
 
         for _ in 0..self.starting_size {
             if let Some(supplier) = self.supplier.as_ref() {
@@ -64,7 +64,7 @@ where
 
     /// Builds a pool using the configured settings, and fill it with the given items.
     pub fn build_with(self, items: Vec<T>) -> Pool<T> {
-        let values = CachedThreadLocal::new();
+        let values = ThreadLocal::new();
 
         let size = items.len();
         for itm in items {

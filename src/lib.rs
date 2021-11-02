@@ -191,7 +191,7 @@ use std::fmt::{self, Debug, Display, Formatter};
 use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
 use std::ops::{Deref, DerefMut};
-use thread_local::CachedThreadLocal;
+use thread_local::ThreadLocal;
 
 /// A thread-safe object pool, used
 /// to reuse objects without reallocating.
@@ -203,7 +203,7 @@ where
     T: Recyclable,
 {
     settings: PoolBuilder<T>,
-    values: CachedThreadLocal<RefCell<Vec<T>>>,
+    values: ThreadLocal<RefCell<Vec<T>>>,
 }
 
 impl<T> Pool<T>
@@ -359,8 +359,8 @@ where
     }
 }
 
-fn init<T>() -> Box<RefCell<Vec<T>>> {
-    Box::new(RefCell::new(vec![]))
+fn init<T>() -> RefCell<Vec<T>> {
+    RefCell::new(vec![])
 }
 
 /// A smart pointer which returns the contained
@@ -474,7 +474,7 @@ mod tests {
 
     #[test]
     fn test_pool_send_and_sync() {
-        assert_impl_all!(Pool<String>, Send, Sync);
+        assert_impl_all!(Pool<String>: Send, Sync);
     }
 
     #[test]
